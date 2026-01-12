@@ -10,7 +10,7 @@
     dest: /home/bender/.google_authenticator
     owner: bender
     group: bender
-    mode: '0600'
+    mode: '0600' # only bender can read and write this file
 
 - name: Disable password authentication for SSH
   lineinfile:
@@ -27,7 +27,14 @@
   lineinfile:
     dest: "/etc/ssh/sshd_config"
     regexp: "^ChallengeResponseAuthentication (yes|no)"
-    line: "ChallengeResponseAuthentication yes"
+    line: "ChallengeResponseAuthentication yes" # This enables keyboard-interactive authentication for SSH, so that Google Authenticator can be used
+    state: present
+
+- name: Set KbdInteractiveAuthentication to Yes # Use this instead of above
+  lineinfile:
+    dest: "/etc/ssh/sshd_config"
+    regexp: "^KbdInteractiveAuthentication (yes|no)"
+    line: "KbdInteractiveAuthentication yes" # Required for keyboard-interactive authentication in newer OpenSSH versions
     state: present
 
 - name: Set Authentication Methods for bender, vagrant, and ubuntu
@@ -39,4 +46,4 @@
       Match User "bender,!vagrant,!ubuntu"
           AuthenticationMethods publickey,keyboard-interactive
     state: present
-  notify: "Restart SSH Server"
+  notify: "Restart SSH Server" # Notify the handler restart_ssh.yml to restart SSH to apply changes
